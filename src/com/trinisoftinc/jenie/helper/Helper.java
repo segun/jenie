@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -30,6 +31,42 @@ public class Helper {
         }
         retval = builder.toString();
         return retval;
+    }
+    
+    public static void getNodeFromMap(HashMap map, DefaultMutableTreeNode node) {        
+        Iterator<String> ite = map.keySet().iterator();
+        while(ite.hasNext()) {             
+            String key = ite.next();
+            Object value = map.get(key);
+            if(value instanceof ArrayList) {
+                DefaultMutableTreeNode keyNode = new DefaultMutableTreeNode(key.replace("\"", ""));
+                getNodeFromList((ArrayList) value, keyNode);
+                node.add(keyNode);
+            } else if(value instanceof HashMap) {
+                DefaultMutableTreeNode keyNode = new DefaultMutableTreeNode(key.replace("\"", ""));
+                getNodeFromMap((HashMap) value, keyNode);
+                node.add(keyNode);                
+            } else {
+                DefaultMutableTreeNode keyNode = new DefaultMutableTreeNode(key.replace("\"", ""));
+                DefaultMutableTreeNode valueNode = new DefaultMutableTreeNode(value.toString().replace("\"", ""));
+                keyNode.add(valueNode);
+                node.add(keyNode);
+            }
+        }                
+    }
+    
+    public static void getNodeFromList(ArrayList list, DefaultMutableTreeNode node) {        
+        ListIterator ite = list.listIterator();
+        while(ite.hasNext()) {
+            Object value = ite.next();
+            if(value instanceof ArrayList) {
+                getNodeFromList((ArrayList) value, node);                
+            } else if(value instanceof HashMap) {
+                getNodeFromMap((HashMap) value, node);                
+            } else {
+                node.add(new DefaultMutableTreeNode(value.toString().replace("\"", "")));
+            }            
+        }
     }
     
     public static String parseMap(HashMap map) {   

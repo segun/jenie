@@ -1,0 +1,7 @@
+[
+    "one", "two", "three", "four", {
+        "wrong": "six",
+        "right": "five"
+    },
+    "six", "seven", "eight", "nine", "ten"
+]

@@ -62,7 +62,6 @@ public class Viewer extends javax.swing.JFrame {
         }
         output += "<hr />";
         txtParsed.setText(output);
-        System.out.println(output);
     }
 
     /** This method is called from within the constructor to

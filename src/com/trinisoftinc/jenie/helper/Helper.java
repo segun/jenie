@@ -10,8 +10,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.ListIterator;
 import javax.swing.JTextPane;
 
 /**
@@ -32,15 +34,44 @@ public class Helper {
         return retval;
     }
     
-    public static boolean displayMap(JTextPane pane, HashMap map) {
-        String output = "<html><body>";
-        output += "<h3>Json Dictionary Found</h3><hr/>";
-        output += "<ul type='none'>";
+    public static String parseMap(HashMap map) {   
+        String output = "<table border='1' cellpadding='10'>";
         Iterator<String> ite = map.keySet().iterator();
-        return true;
+        while(ite.hasNext()) {             
+            output += "<tr>";
+            String key = ite.next();
+            Object value = map.get(key);
+            if(value instanceof ArrayList) {
+                output += "<td><b>" + key.replace("\"", "") + "</b></td>";                
+                output += "<td>" + parseArray((ArrayList) value) + "</td>";
+            } else if(value instanceof HashMap) {
+                output += "<td><b>" + key.replace("\"", "") + "</b></td>";
+                output += "<td>" + parseMap((HashMap) value) + "</td>";
+            } else {
+                output += "<td><b>" + key.replace("\"", "") + "</b></td>";
+                output += "<td>" + value.toString().replace("\"", "") + "</td>";
+            }
+            output += "</tr>";            
+        }      
+        output += "</table>";
+        return output;
     }
     
-    public static boolean parseArray(JTextPane pane) {
-        return true;
+    public static String parseArray(ArrayList list) {
+        String output = "<table border='1' cellpadding='10'>";
+        ListIterator ite = list.listIterator();
+        while(ite.hasNext()) {
+            output += "<tr>";
+            Object value = ite.next();
+            if(value instanceof ArrayList) {
+                output += "<td><b>" + parseArray((ArrayList) value)+ "</b></td>";                
+            } else if(value instanceof HashMap) {
+                output += "<td><b>" + parseMap((HashMap) value) + "</b></td>";
+            } else {
+                output += "<td><b>" + value.toString().replace("\"", "") + "</b></td>";
+            }
+        }
+        output += "</table>";
+        return output;
     }
 }

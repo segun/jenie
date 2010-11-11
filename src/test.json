@@ -2,5 +2,17 @@
     "name": "trinisoftinc",
     "date": "2010-11-11",
     "filename": "test.json",
-    "friends": ["dele","wale","segun"]
+    "friends": ["dele","wale","segun"],
+    "jobs": {
+        "software developer": "leapsoft", 
+        "chief programmer": "lautech",
+        "teacher": [
+            "victory day", "lautech", "lasu", {
+                "laspotech" : {
+                    "part time" : ["100 level", "200 level", "400 level"],
+                    "full time" : ["200 level", "500 level"]
+                }
+            }
+        ]       
+    }
 }

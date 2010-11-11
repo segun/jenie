@@ -6,24 +6,22 @@
 package com.trinisoftinc.jenie.helper;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
-import javax.swing.JTextPane;
 
 /**
  *
  * @author trinisoftinc
  */
 public class Helper {
-    public static String getFileContents(File f) throws IOException {
+    public static String getInputStreamContents(InputStream is) throws IOException {
         String retval = "";
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String line = "";
         StringBuilder builder = new StringBuilder();
         while((line = reader.readLine()) != null) {

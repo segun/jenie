@@ -18,11 +18,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -32,16 +37,18 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 public class Viewer extends javax.swing.JFrame {
 
-    File file;
+    InputStream is;
+    boolean isURL = false;
+    File f;
 
     /** Creates new form Viewer */
     public Viewer() {
         initComponents();
     }
 
-    private void parse() throws FileNotFoundException, ParseException, Exception {
+    private void parse(InputStream in) throws FileNotFoundException, ParseException, Exception {
         boolean isMap = false;
-        Decoder decoder = new Decoder(new FileInputStream(file));
+        Decoder decoder = new Decoder(in);
         decoder.parse();
         String output = "<html><body><hr />";
         if (decoder.finalArray.isEmpty()) {
@@ -50,7 +57,7 @@ public class Viewer extends javax.swing.JFrame {
             output += Helper.parseMap(fm);
         } else {
             isMap = false;
-            ArrayList fl = decoder.finalArray;            
+            ArrayList fl = decoder.finalArray;
             output += Helper.parseArray(fl);
         }
         output += "<hr />";
@@ -71,8 +78,9 @@ public class Viewer extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         btnSelectFile = new javax.swing.JButton();
         lblFileName = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        txtURL = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        btnGO = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtParsed = new javax.swing.JTextPane();
@@ -96,6 +104,13 @@ public class Viewer extends javax.swing.JFrame {
 
         jLabel2.setText("Enter URL");
 
+        btnGO.setText("GO");
+        btnGO.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGOActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -106,9 +121,12 @@ public class Viewer extends javax.swing.JFrame {
                     .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnSelectFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 351, Short.MAX_VALUE)
-                    .addComponent(lblFileName, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 351, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblFileName, javax.swing.GroupLayout.DEFAULT_SIZE, 351, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(txtURL, javax.swing.GroupLayout.PREFERRED_SIZE, 274, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnGO, javax.swing.GroupLayout.DEFAULT_SIZE, 71, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -119,8 +137,9 @@ public class Viewer extends javax.swing.JFrame {
                     .addComponent(lblFileName))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
+                    .addComponent(txtURL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2)
+                    .addComponent(btnGO))
                 .addContainerGap())
         );
 
@@ -174,7 +193,7 @@ public class Viewer extends javax.swing.JFrame {
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(11, Short.MAX_VALUE)
+                .addContainerGap(26, Short.MAX_VALUE)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(viewHTML)
                     .addComponent(viewJSON)
@@ -188,42 +207,54 @@ public class Viewer extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(97, 97, 97))))
+                        .addGap(170, 170, 170)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSelectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelectFileActionPerformed
-
+        isURL = false;
         try {
             // TODO add your handling code here:
             JFileChooser fileChooser = new JFileChooser(new File("."));
             fileChooser.showOpenDialog(rootPane);
-            file = fileChooser.getSelectedFile();
-            lblFileName.setText(file.getAbsolutePath());
-            parse();
+            f = fileChooser.getSelectedFile();
+            lblFileName.setText(f.getAbsolutePath());
+            is = new FileInputStream(f);
+            if(viewJSON.isSelected()) {
+                txtParsed.setContentType("text/json");
+                txtParsed.setText(Helper.getInputStreamContents(is));
+            } else if(viewHTML.isSelected()) {
+                txtParsed.setContentType("text/html");
+                parse(is);
+            } else {
+                txtParsed.setContentType("text/plain");                
+                parse(is);
+            }            
         } catch (ParseException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Error Parsing JSON. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Unknown IO Exception Occurred. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
+            JOptionPane.showMessageDialog(rootPane, "Unknown Exception Occurred. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_btnSelectFileActionPerformed
@@ -231,21 +262,41 @@ public class Viewer extends javax.swing.JFrame {
     private void viewHTMLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHTMLActionPerformed
         try {
             txtParsed.setContentType("text/html");
-            parse();
+            if (isURL) {
+                URL url = new URL(txtURL.getText());
+                URLConnection urlConnection = url.openConnection();
+                is = urlConnection.getInputStream();
+                parse(urlConnection.getInputStream());
+            } else {
+                is = new FileInputStream(f);
+                parse(is);
+            }
         } catch (FileNotFoundException ex) {
+            JOptionPane.showMessageDialog(rootPane, "File Not Found " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParseException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Error Parsing JSON. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
+            JOptionPane.showMessageDialog(rootPane, "Unknown Exception Occurred. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_viewHTMLActionPerformed
 
     private void viewJSONActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewJSONActionPerformed
         try {
-            txtParsed.setContentType("text/plain");
-            txtParsed.setText(Helper.getFileContents(file));
+            txtParsed.setContentType("text/json");
+            if (isURL) {
+                URL url = new URL(txtURL.getText());
+                URLConnection urlConnection = url.openConnection();
+                is = urlConnection.getInputStream();
+                txtParsed.setText(Helper.getInputStreamContents(is));
+            } else {
+                is = new FileInputStream(f);
+                txtParsed.setText(Helper.getInputStreamContents(is));
+            }
         } catch (IOException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Unknown IO Exception Occurred. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_viewJSONActionPerformed
@@ -253,15 +304,58 @@ public class Viewer extends javax.swing.JFrame {
     private void viewHTMLCodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHTMLCodeActionPerformed
         try {
             txtParsed.setContentType("text/plain");
-            parse();
+            if (isURL) {
+                URL url = new URL(txtURL.getText());
+                URLConnection urlConnection = url.openConnection();
+                is = urlConnection.getInputStream();
+                parse(urlConnection.getInputStream());
+            } else {
+                is = new FileInputStream(f);
+                parse(is);
+            }
         } catch (FileNotFoundException ex) {
+            JOptionPane.showMessageDialog(rootPane, "File Not Found. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParseException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Error Parsing JSON. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
+            JOptionPane.showMessageDialog(rootPane, "Unknown Exception Occurred. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_viewHTMLCodeActionPerformed
+
+    private void btnGOActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGOActionPerformed
+        isURL = true;
+        try {
+            // TODO add your handling code here:
+            URL url = new URL(txtURL.getText());
+            URLConnection urlConnection = url.openConnection();
+            is = urlConnection.getInputStream();
+            if(viewJSON.isSelected()) {
+                txtParsed.setContentType("text/json");
+                txtParsed.setText(Helper.getInputStreamContents(is));
+            } else if(viewHTML.isSelected()) {
+                txtParsed.setContentType("text/html");
+                parse(is);
+            } else {
+                txtParsed.setContentType("text/plain");                
+                parse(is);
+            }                        
+        } catch (MalformedURLException ex) {
+            JOptionPane.showMessageDialog(rootPane, "URL Not well formed");
+            Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(rootPane, "Unknown IO Exception Occurred. " + ex.getMessage());
+        } catch (ParseException ex) {
+            JOptionPane.showMessageDialog(rootPane, "Error Parsing JSON. " + ex.getMessage());
+            Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(rootPane, "Unknown Exception Occurred. " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_btnGOActionPerformed
 
     /**
      * @param args the command line arguments
@@ -288,15 +382,16 @@ public class Viewer extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnGO;
     private javax.swing.JButton btnSelectFile;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JLabel lblFileName;
     private javax.swing.JTextPane txtParsed;
+    private javax.swing.JTextField txtURL;
     private javax.swing.JRadioButton viewHTML;
     private javax.swing.JRadioButton viewHTMLCode;
     private javax.swing.JRadioButton viewJSON;

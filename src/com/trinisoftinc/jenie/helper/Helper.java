@@ -63,11 +63,26 @@ public class Helper {
                     builder.append(ch);
                 }
             }
+        } else {
+            String INDENT = "";
+            int length = input.length();
+            for (int i = 0; i < length; i++) {
+                char ch = input.charAt(i);                
+                if(ch == '>') {
+                    builder.append(ch);
+                    builder.append("\n");
+                } else if(ch == '<' && input.charAt(i + 1) == '/') {
+                    builder.append("\n");
+                    builder.append(ch);                                        
+                } else {
+                    builder.append(ch);
+                }
+            }
         }
         
         return builder.toString();
     }
-
+    
     public static void getNodeFromMap(HashMap map, DefaultMutableTreeNode node) {
         Iterator<String> ite = map.keySet().iterator();
         while (ite.hasNext()) {

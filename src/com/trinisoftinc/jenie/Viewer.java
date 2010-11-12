@@ -64,6 +64,7 @@ public class Viewer extends javax.swing.JFrame {
             output += Helper.parseArray(fl);
         }
         output += "<hr />";
+        output += "</body></html>";
         txtParsed.setText(output);
         original = output;
         format();

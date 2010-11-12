@@ -28,7 +28,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -42,6 +41,8 @@ public class Viewer extends javax.swing.JFrame {
     InputStream is;
     boolean isURL = false;
     File f;
+    
+    String original, formatted;
 
     /** Creates new form Viewer */
     public Viewer() {
@@ -64,6 +65,8 @@ public class Viewer extends javax.swing.JFrame {
         }
         output += "<hr />";
         txtParsed.setText(output);
+        original = output;
+        format();
     }
 
     /** This method is called from within the constructor to
@@ -89,6 +92,7 @@ public class Viewer extends javax.swing.JFrame {
         viewJSON = new javax.swing.JRadioButton();
         viewHTMLCode = new javax.swing.JRadioButton();
         viewTree = new javax.swing.JRadioButton();
+        chkFormat = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -200,6 +204,13 @@ public class Viewer extends javax.swing.JFrame {
             }
         });
 
+        chkFormat.setText("Apply Formatting");
+        chkFormat.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chkFormatActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -212,12 +223,15 @@ public class Viewer extends javax.swing.JFrame {
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(8, 8, 8)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(viewHTML)
-                            .addComponent(viewJSON))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(viewTree)
-                            .addComponent(viewHTMLCode))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(viewHTML)
+                                    .addComponent(viewJSON))
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(viewTree)
+                                    .addComponent(viewHTMLCode)))
+                            .addComponent(chkFormat))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -235,7 +249,9 @@ public class Viewer extends javax.swing.JFrame {
                                 .addComponent(viewJSON))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(18, 18, 18)
-                                .addComponent(viewTree))))
+                                .addComponent(viewTree)))
+                        .addGap(9, 9, 9)
+                        .addComponent(chkFormat))
                     .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(outputPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -256,6 +272,8 @@ public class Viewer extends javax.swing.JFrame {
             if (viewJSON.isSelected()) {
                 txtParsed.setContentType("text/json");
                 txtParsed.setText(Helper.getInputStreamContents(is));
+                original = txtParsed.getText();
+                format();
             } else if (viewHTML.isSelected()) {
                 txtParsed.setContentType("text/html");
                 parse(is);
@@ -272,7 +290,7 @@ public class Viewer extends javax.swing.JFrame {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(rootPane, "Unknown Exception Occurred. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }        
     }//GEN-LAST:event_btnSelectFileActionPerformed
 
     private void viewHTMLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHTMLActionPerformed
@@ -317,6 +335,8 @@ public class Viewer extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, "Unknown IO Exception Occurred. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
         }
+        original = txtParsed.getText();
+        format();
     }//GEN-LAST:event_viewJSONActionPerformed
 
     private void viewHTMLCodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHTMLCodeActionPerformed
@@ -354,6 +374,8 @@ public class Viewer extends javax.swing.JFrame {
             if (viewJSON.isSelected()) {
                 txtParsed.setContentType("text/json");
                 txtParsed.setText(Helper.getInputStreamContents(is));
+                original = txtParsed.getText();
+                format();
             } else if (viewHTML.isSelected()) {
                 txtParsed.setContentType("text/html");
                 parse(is);
@@ -398,6 +420,23 @@ public class Viewer extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_viewTreeActionPerformed
 
+    private void chkFormatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkFormatActionPerformed
+        // TODO add your handling code here:       
+        format();
+    }//GEN-LAST:event_chkFormatActionPerformed
+
+    private void format() {
+        String ct;
+        if(viewJSON.isSelected()) ct = "text/json";
+        else if(viewHTML.isSelected()) ct = "text/html";
+        else ct = "text/plain";
+        if (chkFormat.isSelected()) {                                   
+            formatted = Helper.format(original, ct);
+            txtParsed.setText(formatted);
+        } else {
+            txtParsed.setText(original);
+        }        
+    }
     /**
      * @param args the command line arguments
      */
@@ -426,6 +465,7 @@ public class Viewer extends javax.swing.JFrame {
     private javax.swing.JButton btnGO;
     private javax.swing.JButton btnSelectFile;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JCheckBox chkFormat;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lblFileName;

@@ -4,6 +4,7 @@
  */
 package com.trinisoftinc.jenie.helper;
 
+import com.trinisoftinc.jenie.Viewer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -120,6 +121,15 @@ public class Helper {
     }
 
     public static String parseMap(HashMap map) {
+        String keyColorCode = Viewer.txtKCC.getText();
+        if(keyColorCode == null || keyColorCode.equals("")) {
+            keyColorCode = "#ffffff";
+        }
+        String valueColorCode = Viewer.txtVCC.getText();
+        if(valueColorCode == null || valueColorCode.equals("")) {
+            valueColorCode = "#ffffff";
+        }
+        
         String output = "<table border='1' cellpadding='10'>";
         Iterator<String> ite = map.keySet().iterator();
         while (ite.hasNext()) {
@@ -127,14 +137,14 @@ public class Helper {
             String key = ite.next();
             Object value = map.get(key);
             if (value instanceof ArrayList) {
-                output += "<td><b>" + key.replace("\"", "") + "</b></td>";
-                output += "<td>" + parseArray((ArrayList) value) + "</td>";
+                output += "<td style='background-color: " + keyColorCode + "'><b>" + key.replace("\"", "") + "</b></td>";
+                output += "<td style='background-color: " + valueColorCode + "'>" + parseArray((ArrayList) value) + "</td>";
             } else if (value instanceof HashMap) {
-                output += "<td><b>" + key.replace("\"", "") + "</b></td>";
-                output += "<td>" + parseMap((HashMap) value) + "</td>";
+                output += "<td style='background-color: " + keyColorCode + "'><b>" + key.replace("\"", "") + "</b></td>";
+                output += "<td style='background-color: " + valueColorCode + "'>" + parseMap((HashMap) value) + "</td>";
             } else {
-                output += "<td><b>" + key.replace("\"", "") + "</b></td>";
-                output += "<td>" + value.toString().replace("\"", "") + "</td>";
+                output += "<td style='background-color: " + keyColorCode + "'><b>" + key.replace("\"", "") + "</b></td>";
+                output += "<td style='background-color: " + valueColorCode + "'>" + value.toString().replace("\"", "") + "</td>";
             }
             output += "</tr>";
         }
@@ -143,17 +153,21 @@ public class Helper {
     }
 
     public static String parseArray(ArrayList list) {
+        String keyColorCode = Viewer.txtKCC.getText();
+        if(keyColorCode == null || keyColorCode.equals("")) {
+            keyColorCode = "#ffffff";
+        }        
         String output = "<table border='1' cellpadding='10'>";
         ListIterator ite = list.listIterator();
         while (ite.hasNext()) {
             output += "<tr>";
             Object value = ite.next();
             if (value instanceof ArrayList) {
-                output += "<td><b>" + parseArray((ArrayList) value) + "</b></td>";
+                output += "<td style='background-color: " + keyColorCode + "'><b>" + parseArray((ArrayList) value) + "</b></td>";
             } else if (value instanceof HashMap) {
-                output += "<td><b>" + parseMap((HashMap) value) + "</b></td>";
+                output += "<td style='background-color: " + keyColorCode + "'><b>" + parseMap((HashMap) value) + "</b></td>";
             } else {
-                output += "<td><b>" + value.toString().replace("\"", "") + "</b></td>";
+                output += "<td style='background-color: " + keyColorCode + "'><b>" + value.toString().replace("\"", "") + "</b></td>";
             }
         }
         output += "</table>";

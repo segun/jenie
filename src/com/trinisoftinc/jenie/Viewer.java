@@ -10,8 +10,6 @@
  */
 package com.trinisoftinc.jenie;
 
-import com.mason.parser.Decoder;
-import com.mason.parser.ParseException;
 import com.trinisoft.libraries.Centralizer;
 import com.trinisoftinc.jenie.helper.Helper;
 import java.io.File;
@@ -22,6 +20,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -31,6 +30,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  *
@@ -41,7 +43,6 @@ public class Viewer extends javax.swing.JFrame {
     InputStream is;
     boolean isURL = false;
     File f;
-    
     String original, formatted;
 
     /** Creates new form Viewer */
@@ -49,18 +50,34 @@ public class Viewer extends javax.swing.JFrame {
         initComponents();
     }
 
-    private void parse(InputStream in) throws FileNotFoundException, ParseException, Exception {
+    private void parse(InputStream in) throws FileNotFoundException, JSONException, Exception {
         boolean isMap = false;
-        Decoder decoder = new Decoder(in);
-        decoder.parse();
+        //Decoder decoder = new Decoder(new InputStreamReader(in, "UTF-8"));
+        //decoder.parse();
+        String contents = Helper.getInputStreamContents(is);
+        JSONObject object = null;
+        JSONArray array = null;
+
+        try {
+            object = new JSONObject(contents);
+        } catch (JSONException e) {
+            try {
+                array = new JSONArray(contents);
+            } catch (JSONException je) {
+            }
+        } finally {
+            if (object == null && array == null) {
+                JOptionPane.showMessageDialog(this, "The Source specified does not contain a valid JSON String", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
         String output = "<html><body><hr />";
-        if (decoder.finalArray.isEmpty()) {
+        if (array == null) {
             isMap = true;
-            HashMap fm = decoder.finalMap;
+            HashMap<String, Object> fm = Helper.getMapFromJSONObject(object);
             output += Helper.parseMap(fm);
         } else {
             isMap = false;
-            ArrayList fl = decoder.finalArray;
+            ArrayList fl = Helper.getListFromJSONArray(array);
             output += Helper.parseArray(fl);
         }
         output += "<hr />";
@@ -86,14 +103,14 @@ public class Viewer extends javax.swing.JFrame {
         txtURL = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         btnGO = new javax.swing.JButton();
+        outputPanel = new javax.swing.JPanel();
+        outputScrollPane = new javax.swing.JScrollPane();
+        txtParsed = new javax.swing.JTextPane();
         jLabel3 = new javax.swing.JLabel();
         txtKCC = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         txtVCC = new javax.swing.JTextField();
         btnApply = new javax.swing.JButton();
-        outputPanel = new javax.swing.JPanel();
-        outputScrollPane = new javax.swing.JScrollPane();
-        txtParsed = new javax.swing.JTextPane();
         viewHTML = new javax.swing.JRadioButton();
         viewJSON = new javax.swing.JRadioButton();
         viewHTMLCode = new javax.swing.JRadioButton();
@@ -105,7 +122,7 @@ public class Viewer extends javax.swing.JFrame {
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED), "Select a file or type a url"));
 
-        btnSelectFile.setText("...");
+        btnSelectFile.setText("Select File");
         btnSelectFile.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSelectFileActionPerformed(evt);
@@ -123,6 +140,44 @@ public class Viewer extends javax.swing.JFrame {
             }
         });
 
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnSelectFile)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblFileName)
+                    .addComponent(txtURL, javax.swing.GroupLayout.DEFAULT_SIZE, 334, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnGO, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnSelectFile)
+                    .addComponent(lblFileName))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel2)
+                        .addComponent(txtURL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnGO))
+                .addContainerGap(13, Short.MAX_VALUE))
+        );
+
+        outputPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Outputs"));
+
+        txtParsed.setContentType("text/html");
+        txtParsed.setText("");
+        outputScrollPane.setViewportView(txtParsed);
+
         jLabel3.setText("Keys Color Code");
 
         txtKCC.setText("#ffeedd");
@@ -136,77 +191,12 @@ public class Viewer extends javax.swing.JFrame {
 
         txtVCC.setText("#dadfaf");
 
-        btnApply.setText("...");
+        btnApply.setText("Apply");
         btnApply.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnApplyActionPerformed(evt);
             }
         });
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
-                    .addComponent(btnSelectFile)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lblFileName, javax.swing.GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(txtURL, javax.swing.GroupLayout.PREFERRED_SIZE, 322, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnGO, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(txtKCC, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtVCC, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnApply)))))
-                .addContainerGap())
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnSelectFile)
-                    .addComponent(lblFileName))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel2)
-                            .addComponent(txtURL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnGO)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(txtKCC, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtVCC, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4)
-                    .addComponent(btnApply))
-                .addGap(31, 31, 31))
-        );
-
-        outputPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Outputs"));
-
-        txtParsed.setContentType("text/html");
-        txtParsed.setText("");
-        outputScrollPane.setViewportView(txtParsed);
 
         javax.swing.GroupLayout outputPanelLayout = new javax.swing.GroupLayout(outputPanel);
         outputPanel.setLayout(outputPanelLayout);
@@ -214,13 +204,33 @@ public class Viewer extends javax.swing.JFrame {
             outputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(outputPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(outputScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 775, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGroup(outputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(outputPanelLayout.createSequentialGroup()
+                        .addComponent(outputScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 775, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addGroup(outputPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(6, 6, 6)
+                        .addComponent(txtKCC, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtVCC, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnApply)
+                        .addGap(245, 245, 245))))
         );
         outputPanelLayout.setVerticalGroup(
             outputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(outputPanelLayout.createSequentialGroup()
-                .addComponent(outputScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 515, Short.MAX_VALUE)
+                .addGroup(outputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(txtVCC, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4)
+                    .addComponent(btnApply)
+                    .addComponent(txtKCC, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(outputScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 492, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -270,12 +280,12 @@ public class Viewer extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(outputPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 541, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(28, 28, 28)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(chkFormat)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(viewHTML)
@@ -283,9 +293,9 @@ public class Viewer extends javax.swing.JFrame {
                                 .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(viewTree)
-                                    .addComponent(viewHTMLCode)))
-                            .addComponent(chkFormat))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addComponent(viewHTMLCode)))))
+                    .addComponent(outputPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -296,20 +306,18 @@ public class Viewer extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(viewHTML)
                             .addComponent(viewHTMLCode))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(22, 22, 22)
-                                .addComponent(viewJSON))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(viewTree)))
-                        .addGap(9, 9, 9)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(viewTree)
+                            .addComponent(viewJSON))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(chkFormat))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(outputPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(8, 8, 8)
+                .addComponent(outputPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(37, 37, 37))
         );
 
         pack();
@@ -345,7 +353,7 @@ public class Viewer extends javax.swing.JFrame {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(rootPane, "Unknown Exception Occurred. " + ex.getMessage());
             Logger.getLogger(Viewer.class.getName()).log(Level.SEVERE, null, ex);
-        }        
+        }
     }//GEN-LAST:event_btnSelectFileActionPerformed
 
     private void viewHTMLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewHTMLActionPerformed
@@ -434,10 +442,10 @@ public class Viewer extends javax.swing.JFrame {
             } else if (viewHTML.isSelected()) {
                 txtParsed.setContentType("text/html");
                 parse(is);
-            } else if(viewHTMLCode.isSelected()){
+            } else if (viewHTMLCode.isSelected()) {
                 txtParsed.setContentType("text/plain");
                 parse(is);
-            } else if(viewTree.isSelected()) {
+            } else if (viewTree.isSelected()) {
                 viewTreeActionPerformed(evt);
             }
         } catch (MalformedURLException ex) {
@@ -493,16 +501,21 @@ public class Viewer extends javax.swing.JFrame {
 
     private void format() {
         String ct;
-        if(viewJSON.isSelected()) ct = "text/json";
-        else if(viewHTML.isSelected()) ct = "text/html";
-        else ct = "text/plain";
-        if (chkFormat.isSelected()) {                                   
+        if (viewJSON.isSelected()) {
+            ct = "text/json";
+        } else if (viewHTML.isSelected()) {
+            ct = "text/html";
+        } else {
+            ct = "text/plain";
+        }
+        if (chkFormat.isSelected()) {
             formatted = Helper.format(original, ct);
             txtParsed.setText(formatted);
         } else {
             txtParsed.setText(original);
-        }        
+        }
     }
+
     /**
      * @param args the command line arguments
      */

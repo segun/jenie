@@ -10,17 +10,18 @@
  */
 package com.trinisoftinc.jenie;
 
-import com.mason.parser.Decoder;
-import com.mason.parser.ParseException;
 import com.trinisoftinc.jenie.helper.Helper;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JScrollPane;
+import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  *
@@ -40,19 +41,35 @@ public class TreeView extends javax.swing.JPanel {
 
     public JTree getTreeView(InputStream is) {
         try {
-            Decoder decoder = new Decoder(is);
-            decoder.parse();
+            //Decoder decoder = new Decoder(is);
+            //decoder.parse();
+            String contents = Helper.getInputStreamContents(is);
+            JSONObject object = null;
+            JSONArray array = null;
+            
+            try {            
+                object = new JSONObject(contents);
+            } catch(JSONException e) {
+                try {
+                    array = new JSONArray(contents);
+                } catch(JSONException je) {                    
+                }
+            } finally {
+                if(object == null && array == null) {
+                    JOptionPane.showMessageDialog(this, "The Source specified does not contain a valid JSON String", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
             DefaultMutableTreeNode node = new DefaultMutableTreeNode();
-            if (decoder.finalArray.isEmpty()) {
-                HashMap fm = decoder.finalMap;                
+            if (array == null) {
+                HashMap<String, Object> fm = Helper.getMapFromJSONObject(object);
                 Helper.getNodeFromMap(fm, node);
                 jsonTree = new JTree(node);
             } else {
-                ArrayList list = decoder.finalArray;
+                ArrayList<Object> list = Helper.getListFromJSONArray(array);
                 Helper.getNodeFromList(list, node);
                 jsonTree = new JTree(node);
             }
-        } catch (ParseException ex) {
+        } catch (JSONException ex) {
             Logger.getLogger(TreeView.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
             Logger.getLogger(TreeView.class.getName()).log(Level.SEVERE, null, ex);

@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
 import javax.swing.tree.DefaultMutableTreeNode;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  *
@@ -38,12 +41,12 @@ public class Helper {
     public static String format(String input, String contentType) {
         StringBuilder builder = new StringBuilder();
         System.out.println(contentType);
-        if (contentType.equals("text/json")) {            
+        if (contentType.equals("text/json")) {
             String INDENT = "";
             int length = input.length();
             for (int i = 0; i < length; i++) {
                 char ch = input.charAt(i);
-                if (ch == '{' || ch == '[') {                    
+                if (ch == '{' || ch == '[') {
                     builder.append("\n");
                     builder.append(INDENT);
                     builder.append(ch);
@@ -51,15 +54,15 @@ public class Helper {
                     INDENT += "\t";
                     builder.append(INDENT);
                 } else if (ch == '}' || ch == ']') {
-                    INDENT = INDENT.substring(0, INDENT.length() - 1);                    
+                    INDENT = INDENT.substring(0, INDENT.length() - 1);
                     builder.append("\n");
                     builder.append(INDENT);
-                    builder.append(ch);    
+                    builder.append(ch);
                     //builder.append("\n");
-                } else if(ch == ',') {
+                } else if (ch == ',') {
                     builder.append(ch);
                     builder.append("\n");
-                    builder.append(INDENT);                                        
+                    builder.append(INDENT);
                 } else {
                     builder.append(ch);
                 }
@@ -68,22 +71,22 @@ public class Helper {
             String INDENT = "";
             int length = input.length();
             for (int i = 0; i < length; i++) {
-                char ch = input.charAt(i);                
-                if(ch == '>') {
+                char ch = input.charAt(i);
+                if (ch == '>') {
                     builder.append(ch);
                     builder.append("\n");
-                } else if(ch == '<' && input.charAt(i + 1) == '/') {
+                } else if (ch == '<' && input.charAt(i + 1) == '/') {
                     builder.append("\n");
-                    builder.append(ch);                                        
+                    builder.append(ch);
                 } else {
                     builder.append(ch);
                 }
             }
         }
-        
+
         return builder.toString();
     }
-    
+
     public static void getNodeFromMap(HashMap map, DefaultMutableTreeNode node) {
         Iterator<String> ite = map.keySet().iterator();
         while (ite.hasNext()) {
@@ -122,14 +125,14 @@ public class Helper {
 
     public static String parseMap(HashMap map) {
         String keyColorCode = Viewer.txtKCC.getText();
-        if(keyColorCode == null || keyColorCode.equals("")) {
+        if (keyColorCode == null || keyColorCode.equals("")) {
             keyColorCode = "#ffffff";
         }
         String valueColorCode = Viewer.txtVCC.getText();
-        if(valueColorCode == null || valueColorCode.equals("")) {
+        if (valueColorCode == null || valueColorCode.equals("")) {
             valueColorCode = "#ffffff";
         }
-        
+
         String output = "<table border='1' cellpadding='10'>";
         Iterator<String> ite = map.keySet().iterator();
         while (ite.hasNext()) {
@@ -154,9 +157,9 @@ public class Helper {
 
     public static String parseArray(ArrayList list) {
         String keyColorCode = Viewer.txtKCC.getText();
-        if(keyColorCode == null || keyColorCode.equals("")) {
+        if (keyColorCode == null || keyColorCode.equals("")) {
             keyColorCode = "#ffffff";
-        }        
+        }
         String output = "<table border='1' cellpadding='10'>";
         ListIterator ite = list.listIterator();
         while (ite.hasNext()) {
@@ -172,5 +175,38 @@ public class Helper {
         }
         output += "</table>";
         return output;
+    }
+
+    public static HashMap<String, Object> getMapFromJSONObject(JSONObject object) throws JSONException {
+        HashMap<String, Object> retVal = new HashMap<String, Object>();
+        Iterator<String> keys = object.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object val = object.get(key);
+            if (val instanceof JSONArray) {
+                retVal.put(key, getListFromJSONArray((JSONArray) val));
+            } else if (val instanceof JSONObject) {
+                retVal.put(key, getMapFromJSONObject((JSONObject) val));
+            } else {
+                retVal.put(key, object.getString(key));
+            }
+        }
+        return retVal;
+    }
+
+    public static ArrayList<Object> getListFromJSONArray(JSONArray array) throws JSONException {
+        ArrayList<Object> retVal = new ArrayList<Object>();
+        int size = array.length();
+        for (int i = 0; i < size; i++) {
+            Object val = array.get(i);
+            if (val instanceof JSONObject) {
+                retVal.add(getMapFromJSONObject((JSONObject) val));
+            } else if (val instanceof JSONArray) {
+                retVal.add(getListFromJSONArray((JSONArray) val));
+            } else {
+                retVal.add(array.getString(i));
+            }
+        }
+        return retVal;
     }
 }

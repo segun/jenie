@@ -326,7 +326,6 @@ public class Viewer extends javax.swing.JFrame {
     private void btnSelectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelectFileActionPerformed
         isURL = false;
         try {
-            // TODO add your handling code here:
             JFileChooser fileChooser = new JFileChooser(new File("."));
             fileChooser.showOpenDialog(rootPane);
             f = fileChooser.getSelectedFile();
@@ -430,7 +429,6 @@ public class Viewer extends javax.swing.JFrame {
     private void btnGOActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGOActionPerformed
         isURL = true;
         try {
-            // TODO add your handling code here:
             URL url = new URL(txtURL.getText());
             URLConnection urlConnection = url.openConnection();
             is = urlConnection.getInputStream();
@@ -464,7 +462,7 @@ public class Viewer extends javax.swing.JFrame {
     }//GEN-LAST:event_btnGOActionPerformed
 
     private void viewTreeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewTreeActionPerformed
-        // TODO add your handling code here:
+
         TreeView tv = new TreeView();
         try {
             if (isURL) {
@@ -486,16 +484,16 @@ public class Viewer extends javax.swing.JFrame {
     }//GEN-LAST:event_viewTreeActionPerformed
 
     private void chkFormatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkFormatActionPerformed
-        // TODO add your handling code here:       
+
         format();
     }//GEN-LAST:event_chkFormatActionPerformed
 
     private void txtKCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtKCCActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_txtKCCActionPerformed
 
     private void btnApplyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnApplyActionPerformed
-        // TODO add your handling code here:        
+
         viewHTMLActionPerformed(evt);
     }//GEN-LAST:event_btnApplyActionPerformed
 
